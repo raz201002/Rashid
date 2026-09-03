@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+:root { --ink: #14213d; --ocean: #006d77; --cream: #f7f5ef; --sun: #f4a261; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: Arial, sans-serif; }
+a { color: inherit; text-decoration: none; }

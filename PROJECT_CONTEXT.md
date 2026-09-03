@@ -32,4 +32,4 @@ The intended learning journey is: building load → demand-charge problem → ba
 - The flow is dense; provide Guided Learning and an advanced Scenario Studio approach.
 
 ## Status
-Governance is established. No technical stack or implementation case has been approved yet.
+D-005 and Case 001 are approved and in progress. The project is establishing its verified application foundation.
