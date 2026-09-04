@@ -6,3 +6,4 @@
 - 2026-09-03: `npm run build` — passed (Next.js production build completed).
 - Pending: browser-level route/reload checks and first GitHub Actions evidence.
 - 2026-09-04: Added 24-hour load-versus-grid-import dispatch chart; lint, unit test, and production build passed.
+- 2026-09-04: Added sample scenario selection and validated custom 24-hour profile entry; lint, 2 unit tests, and production build passed.

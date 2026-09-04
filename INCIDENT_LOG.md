@@ -9,6 +9,7 @@ This is the durable engineering record for anything that can affect quality, pro
 | QA-001 | 2026-09-04 | Code quality | #1 | Lint blocked the dispatch-chart update. | The session-restoration effect synchronously set state; a home navigation used a plain anchor. | Deferred restoration through a timer and used Next.js `Link`. | `npm run lint` passed. | Resolved |
 | QA-002 | 2026-09-04 | Code quality | #1 | Production build blocked after chart work. | Recharts tooltip formatter declared a narrower value type than the library accepts. | Made the formatter safely handle an optional numeric value. | `npm run build` completed with exit code 0. | Resolved |
 | CI-001 | 2026-09-04 | CI / verification | #1 | GitHub Actions failed: no tests were available to run; subsequent build was skipped. | A Python-oriented `lib/` ignore pattern unintentionally ignored `src/lib`, which contains the shared engine and Vitest test. | Anchored the ignore rule to `/lib/` and committed `src/lib` explicitly. | Local lint, test, and build were run; repaired commit `f6bf689` was pushed to trigger GitHub Actions again. | Monitoring |
+| QA-003 | 2026-09-04 | Tooling compatibility | #1 | Vitest warned that the current configuration would not be supported by a future native config loader. | The TypeScript Vitest configuration used ESM syntax while the package defaulted to CommonJS. | Marked the project package as ESM and made Vitest’s path setup ESM-safe. | `npm run test` passed with no compatibility warning. | Resolved |
 
 ## Entry rules
 
