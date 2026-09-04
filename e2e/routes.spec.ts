@@ -19,3 +19,11 @@ test("instructor demo is directly reachable", async ({ page }) => {
   await page.reload();
   await expect(page.getByText("Instructor demo · local learning state")).toBeVisible();
 });
+
+test("guided learning remains usable at a mobile width", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.getByRole("navigation", { name: "Learning modules" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /1 Load profile/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Load profile", exact: true })).toBeVisible();
+});

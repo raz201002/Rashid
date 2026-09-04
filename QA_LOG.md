@@ -12,3 +12,4 @@
 - 2026-09-04: Added Playwright coverage for direct module navigation and reload; E2E route/reload test passed.
 - 2026-09-04: Added instructor demo route and expanded browser route/reload coverage; all 10 Playwright checks passed.
 - 2026-09-04: Case 002 first-pass responsive hierarchy and accessibility polish; lint, 4 unit tests, and production build passed.
+- 2026-09-04: Added a mobile-width usability check; all 11 Playwright browser checks passed.
