@@ -20,4 +20,5 @@
 - Use one shared calculation engine; every screen must use it.
 - Direct navigation and browser reload must work for every route.
 - Link each change to its Issue. State tests run and results in the Issue or PR.
+- Record every environment, code, UI/UX, upload, verification, CI, or delivery failure in INCIDENT_LOG.md before considering it resolved. Include impact, root cause, corrective action, verification, linked case, and status. Do not close a GitHub Issue; only the user may close it.
 - If requirements conflict or evidence is missing, open a case and ask; do not invent an answer.
