@@ -43,6 +43,21 @@ export function parseTwentyFourHourProfile(value: string): number[] | null {
 
 export type DispatchHour = { hour: number; loadKw: number; batteryKw: number; gridKw: number; stateOfChargeKwh: number };
 export type SimulationResult = { hours: DispatchHour[]; baselinePeakKw: number; shavedPeakKw: number; peakReductionKw: number; technicalFeasible: boolean; monthlyDemandChargeSavings: number };
+export type SizingRecommendation = { requiredPowerKw: number; requiredEnergyKwh: number; recommendedPowerKw: number; recommendedEnergyKwh: number; powerMarginKw: number; energyMarginKwh: number };
+
+export function sizeForThreshold(scenario: Scenario): SizingRecommendation {
+  const aboveThreshold = scenario.loadKw.map((loadKw) => Math.max(0, loadKw - scenario.thresholdKw));
+  const requiredPowerKw = Math.max(...aboveThreshold);
+  const requiredEnergyKwh = aboveThreshold.reduce((total, value) => total + value, 0);
+  return {
+    requiredPowerKw,
+    requiredEnergyKwh,
+    recommendedPowerKw: Math.ceil(requiredPowerKw * 1.1),
+    recommendedEnergyKwh: Math.ceil(requiredEnergyKwh * 1.15),
+    powerMarginKw: scenario.batteryKw - requiredPowerKw,
+    energyMarginKwh: scenario.batteryKwh - requiredEnergyKwh
+  };
+}
 
 export function simulatePeakShaving(scenario: Scenario): SimulationResult {
   let stateOfChargeKwh = scenario.batteryKwh;
