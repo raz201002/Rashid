@@ -44,6 +44,9 @@ export function parseTwentyFourHourProfile(value: string): number[] | null {
 export type DispatchHour = { hour: number; loadKw: number; batteryKw: number; gridKw: number; stateOfChargeKwh: number };
 export type SimulationResult = { hours: DispatchHour[]; baselinePeakKw: number; shavedPeakKw: number; peakReductionKw: number; technicalFeasible: boolean; monthlyDemandChargeSavings: number };
 export type SizingRecommendation = { requiredPowerKw: number; requiredEnergyKwh: number; recommendedPowerKw: number; recommendedEnergyKwh: number; powerMarginKw: number; energyMarginKwh: number };
+export type ThermalAssessment = { maximumTemperatureC: number; deratedHours: number; thermalStatus: "normal" | "derating" | "limit" };
+export type UncertaintyResult = { runs: number; feasibleRuns: number; feasibilityRate: number; p10Savings: number; p50Savings: number; p90Savings: number };
+export type EconomicsResult = { capex: number; annualSavings: number; npv: number; simplePaybackYears: number; financialViable: boolean };
 
 export function sizeForThreshold(scenario: Scenario): SizingRecommendation {
   const aboveThreshold = scenario.loadKw.map((loadKw) => Math.max(0, loadKw - scenario.thresholdKw));
@@ -79,4 +82,29 @@ export function simulatePeakShaving(scenario: Scenario): SimulationResult {
     technicalFeasible: shavedPeakKw <= scenario.thresholdKw,
     monthlyDemandChargeSavings: peakReductionKw * scenario.demandChargePerKw
   };
+}
+
+export function assessThermalLimits(scenario: Scenario, result = simulatePeakShaving(scenario)): ThermalAssessment {
+  const maximumTemperatureC = Math.max(...result.hours.map((hour) => 30 + (hour.batteryKw / scenario.batteryKw) * 14));
+  const deratedHours = result.hours.filter((hour) => 30 + (hour.batteryKw / scenario.batteryKw) * 14 >= 40).length;
+  return { maximumTemperatureC, deratedHours, thermalStatus: maximumTemperatureC >= 43 ? "limit" : deratedHours > 0 ? "derating" : "normal" };
+}
+
+function seededMultiplier(seed: number) { return 0.9 + (((seed * 9301 + 49297) % 233280) / 233280) * 0.2; }
+
+export function runUncertaintyTest(scenario: Scenario, runs = 50): UncertaintyResult {
+  const savings = Array.from({ length: runs }, (_, index) => {
+    const multiplier = seededMultiplier(index + 1);
+    return simulatePeakShaving({ ...scenario, loadKw: scenario.loadKw.map((load) => load * multiplier) });
+  });
+  const ordered = savings.map((result) => result.monthlyDemandChargeSavings).sort((left, right) => left - right);
+  const percentile = (percent: number) => ordered[Math.round((ordered.length - 1) * percent)];
+  return { runs, feasibleRuns: savings.filter((result) => result.technicalFeasible).length, feasibilityRate: savings.filter((result) => result.technicalFeasible).length / runs, p10Savings: percentile(0.1), p50Savings: percentile(0.5), p90Savings: percentile(0.9) };
+}
+
+export function evaluateEconomics(scenario: Scenario, result = simulatePeakShaving(scenario), capex = 280000): EconomicsResult {
+  const annualSavings = result.monthlyDemandChargeSavings * 12;
+  const discountRate = 0.08;
+  const npv = Array.from({ length: 10 }, (_, index) => annualSavings / (1 + discountRate) ** (index + 1)).reduce((total, value) => total + value, -capex);
+  return { capex, annualSavings, npv, simplePaybackYears: annualSavings > 0 ? capex / annualSavings : Infinity, financialViable: npv > 0 };
 }

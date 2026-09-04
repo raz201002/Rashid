@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseTwentyFourHourProfile, simulatePeakShaving, sizeForThreshold, starterScenario } from "./scenario";
+import { assessThermalLimits, evaluateEconomics, parseTwentyFourHourProfile, runUncertaintyTest, simulatePeakShaving, sizeForThreshold, starterScenario } from "./scenario";
 
 describe("simulatePeakShaving", () => {
   it("uses the same scenario to calculate a non-negative peak reduction", () => {
@@ -20,5 +20,12 @@ describe("simulatePeakShaving", () => {
     expect(sizing.requiredPowerKw).toBe(100);
     expect(sizing.requiredEnergyKwh).toBe(801);
     expect(sizing.recommendedEnergyKwh).toBeGreaterThan(sizing.requiredEnergyKwh);
+  });
+
+  it("returns repeatable thermal, uncertainty, and financial evidence", () => {
+    const simulation = simulatePeakShaving(starterScenario);
+    expect(assessThermalLimits(starterScenario, simulation).maximumTemperatureC).toBeGreaterThan(30);
+    expect(runUncertaintyTest(starterScenario).runs).toBe(50);
+    expect(evaluateEconomics(starterScenario, simulation).annualSavings).toBe(simulation.monthlyDemandChargeSavings * 12);
   });
 });
