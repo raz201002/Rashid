@@ -41,6 +41,25 @@ export function parseTwentyFourHourProfile(value: string): number[] | null {
   return values.length === 24 && values.every((item) => Number.isFinite(item) && item >= 0) ? values : null;
 }
 
+export type LoadProfileUpload = { ok: true; loadKw: number[] } | { ok: false; message: string };
+
+/** Parses CSV/TSV rows in the documented `hour,load_kw` format. */
+export function parseLoadProfileTable(value: string): LoadProfileUpload {
+  const rows = value.trim().split(/\r?\n/).filter(Boolean).map((row) => row.split(/[\t,]/).map((cell) => cell.trim()));
+  if (rows.length !== 25) return { ok: false, message: "Use one header row and exactly 24 hourly rows." };
+  const [hourHeader, loadHeader] = rows[0].map((cell) => cell.toLowerCase().replaceAll(" ", "_"));
+  if (hourHeader !== "hour" || !["load_kw", "loadkw", "kw"].includes(loadHeader)) return { ok: false, message: "The first row must be: hour,load_kw" };
+  const values = new Array<number>(24);
+  for (const row of rows.slice(1)) {
+    if (row.length !== 2) return { ok: false, message: "Each row must contain exactly an hour and a kW value." };
+    const hour = Number(row[0]); const load = Number(row[1]);
+    if (!Number.isInteger(hour) || hour < 0 || hour > 23 || values[hour] !== undefined) return { ok: false, message: "Hours must be unique whole numbers from 0 through 23." };
+    if (!Number.isFinite(load) || load < 0) return { ok: false, message: "Every load_kw value must be a non-negative number." };
+    values[hour] = load;
+  }
+  return values.every((value) => value !== undefined) ? { ok: true, loadKw: values } : { ok: false, message: "Include every hour from 0 through 23." };
+}
+
 export type DispatchHour = { hour: number; loadKw: number; batteryKw: number; gridKw: number; stateOfChargeKwh: number };
 export type SimulationResult = { hours: DispatchHour[]; baselinePeakKw: number; shavedPeakKw: number; peakReductionKw: number; technicalFeasible: boolean; monthlyDemandChargeSavings: number };
 export type SizingRecommendation = { requiredPowerKw: number; requiredEnergyKwh: number; recommendedPowerKw: number; recommendedEnergyKwh: number; powerMarginKw: number; energyMarginKwh: number };
